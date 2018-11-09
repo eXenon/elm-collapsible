@@ -117,32 +117,78 @@ toggleSection (Section element) =
 -- View functions
 
 
-openStyle =
-    [ ( "max-height", "100vh" ) ]
+globalStyle =
+    [ ( "border-top", "1px solid #ddd" )
+    , ( "border-right", "1px solid #ddd" )
+    , ( "border-left", "1px solid #ddd" )
+    , ( "-webkit-box-shadow", "0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2)" )
+    , ( "box-shadow", "0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2)" )
+    ]
 
 
-closedStyle =
-    [ ( "max-height", "0" ) ]
+tabStyle =
+    [ ( "position", "relative" )
+    , ( "margin-bottom", "1px" )
+    , ( "width", "100%" )
+    , ( "color", "rgba(0,0,0,0.87)" )
+    , ( "font-size", "1.6" )
+    , ( "overflow", "hidden" )
+    ]
 
 
-styleNode =
-    node "style" [] [ text "/* Acordeon styles */\n.tab {\n  position: relative;\n  margin-bottom: 1px;\n  width: 100%;\n  color: #fff;\n  overflow: hidden;\n}\n.tab input {\n  position: absolute;\n  opacity: 0;\n  z-index: -1;\n}\n.tab label {\n  position: relative;\n  display: block;\n  padding: 0 0 0 1em;\n  background: #16a085;\n  font-weight: bold;\n  line-height: 3;\n  cursor: pointer;\n}\n.tab-content {\n  max-height: 0;\n  overflow: hidden;\n  background: #1abc9c;\n  -webkit-transition: max-height .35s;\n  -o-transition: max-height .35s;\n  transition: max-height .35s;\n}\n.tab-content p {\n  margin: 1em;\n}\n/* Icon */\n.tab label::after {\n  position: absolute;\n  right: 0;\n  top: 0;\n  display: block;\n  width: 3em;\n  height: 3em;\n  line-height: 3;\n  text-align: center;\n  -webkit-transition: all .35s;\n  -o-transition: all .35s;\n  transition: all .35s;\n}\n.tab input[type=checkbox] + label::after {\n  content: \"+\";\n}\n.tab input[type=radio] + label::after {\n  content: \"ᦼ\";\n}\n.tab input[type=checkbox]:checked + label::after {\n  transform: rotate(45deg);\n}\n.tab input[type=radio]:checked + label::after {\n  transform: rotateX(180deg);\n}" ]
+inputStyle =
+    [ ( "position", "absolute" )
+    , ( "opacity", "0" )
+    , ( "z-index", "-1" )
+    ]
+
+
+labelStyle =
+    [ ( "position", "relative" )
+    , ( "display", "block" )
+    , ( "padding", "0 0 0 1em" )
+    , ( "background", "white" )
+    , ( "line-height", "3" )
+    , ( "cursor", "pointer" )
+    , ( "border-bottom", "1px solid #ddd" )
+    ]
 
 
 contentStyle : { a | open : Bool } -> List ( String, String )
 contentStyle element =
-    if element.open then
-        openStyle
-    else
-        closedStyle
+    let
+        height =
+            if element.open then
+                ( "max-height", "100vh" )
+            else
+                ( "max-height", "0" )
+    in
+        [ height
+        , ( "overflow", "hidden" )
+        , ( "background", "white" )
+        , ( "-webkit-transition", "max-height .35s" )
+        , ( "-o-transition", "max-height .35s" )
+        , ( "transition", "max-height .35s" )
+        , ( "border-bottom", "1px solid #ddd" )
+        ]
+
+
+pStyle =
+    [ ( "margin", "1em" ) ]
+
+
+styleNode =
+    node "style" [] [ text ".tab label::after {\n  position: absolute;\n  right: 0;\n  top: 0;\n  display: block;\n  width: 3em;\n  height: 3em;\n  line-height: 3;\n  text-align: center;\n  -webkit-transition: all .35s;\n  -o-transition: all .35s;\n  transition: all .35s;\n}\n.tab input[type=checkbox] + label::after {\n  content: \"+\";\n}\n.tab input[type=radio] + label::after {\n  content: \"ᦼ\";\n}\n.tab input[type=checkbox]:checked + label::after {\n  transform: rotate(45deg);\n}\n.tab input[type=radio]:checked + label::after {\n  transform: rotateX(180deg);\n}" ]
 
 
 viewSection : (String -> msg) -> Section msg -> Html msg
 viewSection msg (Section element) =
-    div [ class "tab" ]
-        [ input [ type_ "checkbox", name "tabs", id element.id ] []
-        , label [ for element.id, onClick (msg element.id) ] [ element.header ]
-        , div [ class "tab-content", style (contentStyle element) ] [ p [] [ element.content ] ]
+    div [ class "tab", style tabStyle ]
+        [ input [ type_ "checkbox", name "tabs", id element.id, style inputStyle ] []
+        , label [ for element.id, style labelStyle, onClick (msg element.id) ] [ element.header ]
+        , div [ class "tab-content", style (contentStyle element) ]
+            [ p [ style pStyle ] [ element.content ]
+            ]
         ]
 
 
@@ -150,5 +196,5 @@ view : (String -> msg) -> List (Section msg) -> Html msg
 view msg elements =
     div []
         [ styleNode
-        , div [] (map (viewSection msg) elements)
+        , div [ style globalStyle ] (map (viewSection msg) elements)
         ]
